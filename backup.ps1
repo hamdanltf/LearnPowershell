@@ -1,23 +1,31 @@
-# Class DirToBackup
-# {
-#     [String]$path
-#     DirToBackup([String]$path) {
-#       $this.path = $path
-#     }
-# }
-$defaultListOfExcluded = "D:\LearnPowershell\listOfExcluded.txt"
-$pathFromPrefix = "D:\"
-$pathToPrefix = "D:\Backup\"
-Write-Output "Plug external disk drive. It should be visible as F drive"
-pause
-$dirsToBackup = @(
-    New-Object "backup"
-    # New-Object DirToBackup "development"
-    # New-Object DirToBackup "Dropbox"
-    # New-Object DirToBackup "Google"
-)
-$dirsToBackup | ForEach-Object {
-    mkdir -Path $($pathToPrefix + $_.path) -Force
-    xcopy $($pathFromPrefix + $_.path) $($pathToPrefix + $_.path) /D /S /Y /H /EXCLUDE:$defaultListOfExcluded
+# $exclude = ".\exclude.txt"
+$exclude = @('*.txt','*.ps1')
+$originpath = Read-host -Prompt 'Enter directory that you want to backup '
+$checkpath = Test-Path $originpath
+
+if ($checkpath -eq $true) {
+    Write-output "$originpath found"
+    Write-output "Following directory will be backuped"
+    Get-ChildItem $originpath
+
+    $destinationpath = Read-host -Prompt 'Enter backup destination..'
+    Write-output "Backuping to $destinationpath please wait...."
+
+    Get-ChildItem $originpath -Recurse -Exclude $exclude | Copy-Item -Destination {Join-Path $destinationpath $_.FullName.Substring($originpath.length)}
+
+    # Copy-Item -Path $originpath -Destination $destinationpath -Recurse -Exclude $exclude
+    Get-ChildItem $destinationpath
+
+    # $checkpath = Test-Path $destinationpath
+    # if ($checkpath -eq $true) {
+    #     Write-output "Backup will stored on $destinationpath"
+    # }
+    # elseif ($checkpath -eq $false) {
+    #     Write-output "Directory not-found! creating new directory..."
+    #     New-Item -ItemType Directory -Name $destinationpath
+    # }
 }
-pause
+elseif ($checkpath -eq $false) {
+    Write-output "$originpath not-found" 
+    ./backup.ps1   
+}

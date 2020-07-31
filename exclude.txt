@@ -6,3 +6,6 @@
 \target\
 \node_modules\
 \out\
+.ps1\
+\exclude
+\Program
