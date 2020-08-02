@@ -1,31 +1,52 @@
-# $exclude = ".\exclude.txt"
-$exclude = @('*.txt','*.ps1')
-$originpath = Read-host -Prompt 'Enter directory that you want to backup '
-$checkpath = Test-Path $originpath
+$exclude = ./exclude-folder.ps1
+$excludeextension = ./exclude-extension.ps1
+$sourcepath = Read-host -Prompt 'Enter directory that you want to backup '
+$checkpath = Test-Path $sourcepath
 
 if ($checkpath -eq $true) {
-    Write-output "$originpath found"
-    Write-output "Following directory will be backuped"
-    Get-ChildItem $originpath
+    Write-output "$sourcepath found, contain: "
+    get-childitem $sourcepath
 
-    $destinationpath = Read-host -Prompt 'Enter backup destination..'
-    Write-output "Backuping to $destinationpath please wait...."
+    $date = get-date
+    $date = $date.ToString("yyyy-MM-dd")
+    $destinationpath = Read-host -Prompt "Enter destination directory "
+    $destinationpath = $destinationpath+" "+$date
+    Write-output "Create backup to $destinationpath, please wait..."
 
-    Get-ChildItem $originpath -Recurse -Exclude $exclude | Copy-Item -Destination {Join-Path $destinationpath $_.FullName.Substring($originpath.length)}
+    $tocopy = Get-ChildItem -Path $sourcepath | Where {($exclude -notcontains $_.Name)}
 
-    # Copy-Item -Path $originpath -Destination $destinationpath -Recurse -Exclude $exclude
+    foreach ($folder in $tocopy){ 
+        Copy-Item -Path $sourcepath\$folder -Destination $destinationpath\$folder -Recurse -Force
+    }
+    
+    # Get-ChildItem -Path $destinationpath -Include $exclude -Recurse | foreach { $_.Delete()}
+
+    # do {
+    #     $removeextension = Get-ChildItem $destinationpath -directory -recurse | Where { (Get-ChildItem $_.fullName).count -eq 0 } | select -expandproperty FullName $removeextension | Foreach-Object { Remove-Item $_ }
+    # } while ($removeextension.count -gt 0)
+
+    Get-ChildItem -Path $destinationpath -Include $excludeextension -Recurse | foreach { $_.Delete()}
+
+    do {
+        $dirs = Get-ChildItem $destinationpath -directory -recurse | Where { (Get-ChildItem $_.fullName).count -eq 0 } | select -expandproperty FullName $dirs | Foreach-Object { Remove-Item $_ }
+    } while ($dirs.count -gt 0)
+
     Get-ChildItem $destinationpath
 
-    # $checkpath = Test-Path $destinationpath
-    # if ($checkpath -eq $true) {
-    #     Write-output "Backup will stored on $destinationpath"
-    # }
-    # elseif ($checkpath -eq $false) {
-    #     Write-output "Directory not-found! creating new directory..."
-    #     New-Item -ItemType Directory -Name $destinationpath
-    # }
 }
 elseif ($checkpath -eq $false) {
-    Write-output "$originpath not-found" 
-    ./backup.ps1   
+    Write-output "$sourcepath not found! restart the script"
+    ./backup.ps1
 }
+
+
+
+
+
+
+# $sourcepath =  "D:\Documents\GitHub\LearnPowershell"
+# $destinationpath = "D:\Documents\GitHub\backup"
+
+
+# $tocopy = Get-ChildItem -Path $sourcepath | Where {($_.PSIsContainer) -and ($exclude -notcontains $_.Name)}
+
