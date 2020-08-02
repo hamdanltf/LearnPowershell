@@ -33,12 +33,20 @@ if ($checkpath -eq $true) {
             $dirs = Get-ChildItem $destinationpath -directory -recurse | Where { (Get-ChildItem $_.fullName).count -eq 0 } | select -expandproperty FullName $dirs | Foreach-Object { Remove-Item $_ }
         } while ($dirs.count -gt 0)
 
-    Get-ChildItem $destinationpath
+        Get-ChildItem $destinationpath
+
+        Write-output "Creating archieve file..."
+        $archive = $destinationpath+".zip"
+        Add-Type -assembly "system.io.compression.filesystem" 
+        [io.compression.zipfile]::CreateFromDirectory($destinationpath, $archive)
+        Write-output "Done!!!"
         
     }
 
 }
+
 elseif ($checkpath -eq $false) {
     Write-output "$sourcepath not found! restart the script"
     ./backup.ps1
+
 }
